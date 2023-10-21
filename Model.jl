@@ -1,11 +1,11 @@
-function solve(instance::PDInstance)
+function solveModel(instance::PDInstance)::Solution
     p = instance.P
     C = length(instance.candidates)
     mat = instance.mat
     bigM = maximum(mat)
         
     m = Model(Gurobi.Optimizer)
-    set_time_limit_sec(m, 30.0)
+    set_time_limit_sec(m, 300.0)
 
     @variable(m, x[1:C], Bin)
     @variable(m, d >= 0)
