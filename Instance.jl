@@ -1,10 +1,9 @@
-struct PDInstance
+struct PDInstance <: AbstractInstance
     mat::Matrix{Float64}
     candidates::Vector{Int64}
     N::Int64
     P::Int64
 end
-
 struct Solution
     chosen::Vector{Int64}
     cost::Float64

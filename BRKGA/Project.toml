@@ -1,0 +1,4 @@
+[deps]
+BrkgaMpIpr = "028a27d2-de01-11e8-146d-d556803d83ae"
+Combinatorics = "861a8166-3701-5b0c-9a16-15d98fcdc6aa"
+DocOpt = "968ba79b-81e4-546f-ab3a-2eecfa62a9db"

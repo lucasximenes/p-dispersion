@@ -5,9 +5,10 @@ include("Model.jl")
 include("Exact.jl")
 
 function main()
-    instance = generateKubyInstance(100)
+    Random.seed!(10)
+    instance = generateKubyInstance(10)
     # @show instance
-    # println(solveModel(instance))
+    println(solveModel(instance))
     println(solveExact(instance))
     # return sol
     return
