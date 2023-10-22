@@ -189,7 +189,7 @@ function main(args)
     println("\n[$(Dates.Time(Dates.now()))] Evolving...")
     println("* Iteration | Cost | CurrentTime")
 
-    best_cost = Inf
+    best_cost = -Inf
     best_chromosome = initial_chromosome
 
     iteration = 0
@@ -214,7 +214,7 @@ function main(args)
 
         # Checks the current results and holds the best.
         fitness = get_best_fitness(brkga_data)
-        if fitness < best_cost
+        if fitness > best_cost
             last_update_time = time() - start_time
             update_offset = iteration - last_update_iteration
 
@@ -257,8 +257,6 @@ function main(args)
                 end
 
             end
-
-
 
             @printf("* %d | %.0f | %.2f \n", iteration, best_cost,
                     last_update_time)
