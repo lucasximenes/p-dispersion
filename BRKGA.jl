@@ -311,7 +311,7 @@ function main(args)
                 fitness = get_best_fitness(brkga_data)
                 println("- Best individual improvement: $fitness | " *
                         "Elapsed time: $(@sprintf("%.2f", pr_time))")
-                if fitness < best_cost
+                if fitness > best_cost
                     last_update_time = time() - start_time
                     update_offset = iteration - last_update_iteration
 
