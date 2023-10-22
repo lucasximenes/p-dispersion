@@ -151,58 +151,20 @@ function main(args)
 
     println("\n[$(Dates.Time(Dates.now()))] Reading SCP data...")
 
-    instance = generateKubyInstance(100)
-    #println("Number of nodes: $(instance.num_col)")
-
-    #println("\n[$(Dates.Time(Dates.now()))] Generating initial tour...")
-
-    # Generate a greedy solution to be used as warm start for BRKGA.
-    #initial_cost, initial_tour = greedy_tour(instance)
-    #println("Initial cost: $initial_cost")
-
-    ########################################
-    # Build the BRKGA data structures and initialize
-    ########################################
+    instance = generateKubyInstance(10)
 
     println("\n[$(Dates.Time(Dates.now()))] Building BRKGA data...")
 
-    # Usually, it is a good idea to set the population size
-    # proportional to the instance size.
-    # brkga_params.population_size = 10 * instance.num_lin
-
-    # println("New population size: $(brkga_params.population_size)")
-
-    # Chromosome size is the number of nodes.
-    # Each chromosome represents a permutation of nodes.
     brkga_data = build_brkga(instance, decoder, MAXIMIZE, seed,
                             instance.N, brkga_params, perform_evolution)
 
     
     set_bias_custom_function!(brkga_data, x -> x == 1 ? rho : 1.0 - rho)
 
-    # To inject the initial tour, we need to create chromosome representing that
-    # solution. First, we create a set of keys to be used in the chromosome.
     Random.seed!(seed)
-    # sol = outroConst(instance)
-    # initial_chromosome = buildChromosome(instance, sol)
 
-    # oneFlip = OneFlip(instance, sol)
-    # bestImprovement!(oneFlip)
+    initial_chromosome = rand(instance.N)
 
-    # @show oneFlip.solution
-
-    # initial_chromosome = buildChromosome(instance, oneFlip.solution)
-
-    # Then, we visit each node in the tour and assign to it a key.
-    initial_chromosome = zeros(instance.N)
-    #for i in 1:instance.num_col
-    #    initial_chromosome[initial_tour[i]] = keys[i]
-    #end
-
-    # Inject the warm start solution in the initial population.
-    # set_initial_population!(brkga_data, [initial_chromosome])
-
-    # NOTE: don't forget to initialize the algorithm.
     println("\n[$(Dates.Time(Dates.now()))] Initializing BRKGA data...")
     initialize!(brkga_data)
 
@@ -210,9 +172,6 @@ function main(args)
     # Warm up the script/code
     ########################################
 
-    # To make sure we are timing the runs correctly, we run some warmup
-    # iterations with bogus data. Warmup is always recommended for script
-    # languages. Here, we call the most used methods.
     println("\n[$(Dates.Time(Dates.now()))] Warming up...")
 
     bogus_data = deepcopy(brkga_data)
@@ -396,6 +355,8 @@ function main(args)
     print("\nNumber of homogenities: $num_homogenities")
     print("\nImprovements in the elite set: $num_elite_improvements")
     print("\nBest individual improvements: $num_best_improvements")
+    print("\nBest chromosome: $best_chromosome")
+    print("\nBest cost: $best_cost")
 
 
 end

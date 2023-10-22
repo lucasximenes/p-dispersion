@@ -4,7 +4,7 @@ struct PDInstance <: AbstractInstance
     N::Int64
     P::Int64
 end
-struct Solution
+mutable struct Solution
     chosen::Vector{Int64}
     cost::Float64
 end

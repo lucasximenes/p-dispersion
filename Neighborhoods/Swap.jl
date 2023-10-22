@@ -19,15 +19,16 @@ function eval(swap::Swap, i::Int64, j::Int64)::Float64
     return res
 end
 
-function move!(swap::Swap, i::Int64, j::Int64)
+function move!(swap::Swap, i::Int64, j::Int64, diff::Float64)
     swap.sol.chosen[i] = j
+    swap.sol.cost -= diff
 end
 
 function firstImprovement!(swap::Swap)
     for i in 1:swap.instance.P
         for j in 1:swap.instance.N
-            if eval(swap, i, j) < 0.0
-                move!(swap, i, j)
+            if (diff = eval(swap, i, j)) < 0.0
+                move!(swap, i, j, diff)
                 firstImprovement!(swap)
                 return
             end
