@@ -1,26 +1,62 @@
-function solveExact(instance::PDInstance)::Solution
+mutable struct ExactSolver
+    instance::PDInstance
+    distances::Vector{Tuple{Float64, Int64, Int64}}
+    model::Model
+end
 
+function init!(instance::PDInstance)::ExactSolver
     distances = [(instance.mat[i,j], i, j) for i in 1:instance.N, j in 1:instance.N if i < j]
-
     sort!(distances, by=x->x[1])
 
+    m = Model(Gurobi.Optimizer)
+    set_silent(m)
+    @variable(m, x[1:instance.N], Bin)
+    @constraint(m, sum(x) == instance.P)
+    @constraint(m, [i = 1:instance.P - 2], x[distances[i][2]] + x[distances[i][3]] <= 1)
+
+    return ExactSolver(instance, distances, m)
+end
+
+function solveExact(instance::PDInstance)::Solution
+
+    es = init!(instance)
+
     lo = instance.P - 1
-    hi = length(distances) - instance.P - 1
+    hi = length(es.distances) - instance.P - 1
 
-    # lo = 1
-    # hi = length(distances)
+    c_lo = lo
+    c_hi = hi
 
+    remove_cons = false
     while lo < hi
+        println("lo: ", lo, " hi: ", hi, " mid: ", lo + (hi - lo + 1) ÷ 2)
         mid = lo + (hi - lo + 1) ÷ 2
-
-        if setPacking(distances[1:mid], instance.N, instance.P)
-            lo = mid
+        
+        if remove_cons
+            adaptModel!(es, mid:c_hi, false)
+            remove_cons = false
         else
-            hi = mid - 1
+            adaptModel!(es, c_lo:mid, true)
         end
+        
+        if solve(es)
+            lo = mid
+            c_lo = mid + 1
+        else
+            remove_cons = true
+            hi = mid - 1
+            c_hi = mid
+        end
+
     end
 
-    aux = setPacking(distances[1:lo], instance.N, instance.P, true)
+    if remove_cons
+        adaptModel!(es, lo:c_hi, false)
+    else
+        adaptModel!(es, c_lo:lo, true)
+    end
+
+    aux = solve(es, true)
 
     if aux != false
         ps = [i for i in 1:instance.N if abs(aux[i] - 1.0) < 1e-4]
@@ -33,17 +69,21 @@ function solveExact(instance::PDInstance)::Solution
 
 end
 
+function adaptModel!(es::ExactSolver, indices::UnitRange{Int64}, add::Bool)
+    if add
+        println("Adicionando intervalo $indices")
+        @constraint(es.model, [i = indices], es.model[:x][es.distances[i][2]] + es.model[:x][es.distances[i][3]] <= 1)
+    else
+        println("Removendo intervalo $indices")
+        delete(es.model, all_constraints(es.model, AffExpr, MathOptInterface.LessThan{Float64})[indices])
+    end
+end
 
-function setPacking(indices, N, P, final = false)
-    m = Model(Gurobi.Optimizer)
-    set_silent(m)
-    @variable(m, x[1:N], Bin)
-    @constraint(m, sum(x) == P)
-    @constraint(m, [i = 1:length(indices)], x[indices[i][2]] + x[indices[i][3]] <= 1)
-    optimize!(m)
+function solve(es::ExactSolver, final::Bool = false)
+    optimize!(es.model)
 
-    if termination_status(m) == MOI.OPTIMAL
-        return final ? value.(x) : true 
+    if termination_status(es.model) == MOI.OPTIMAL
+        return final ? value.(es.model[:x]) : true 
     else
         return false
     end
