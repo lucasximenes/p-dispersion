@@ -33,7 +33,7 @@ function solveExact(instance::PDInstance)::Solution
         mid = lo + (hi - lo + 1) ÷ 2
         
         if remove_cons
-            adaptModel!(es, mid:c_hi, false)
+            adaptModel!(es, mid + 1:c_hi, false)
             remove_cons = false
         else
             adaptModel!(es, c_lo:mid, true)
