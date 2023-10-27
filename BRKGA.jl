@@ -34,7 +34,7 @@ import DocOpt
 import Random
 using Printf
 
-using Combinatorics, StatsBase
+using Combinatorics, StatsBase, LinearAlgebra
 
 include("Instance.jl")
 include("Utils.jl")
@@ -149,9 +149,11 @@ function main(args)
     # Load instance and adjust BRKGA parameters
     ########################################
 
+    Random.seed!(seed)
+
     println("\n[$(Dates.Time(Dates.now()))] Reading SCP data...")
 
-    instance = generateKubyInstance(10)
+    instance = generateKubyInstance(200)
 
     println("\n[$(Dates.Time(Dates.now()))] Building BRKGA data...")
 
@@ -160,8 +162,6 @@ function main(args)
 
     
     set_bias_custom_function!(brkga_data, x -> x == 1 ? rho : 1.0 - rho)
-
-    Random.seed!(seed)
 
     initial_chromosome = rand(instance.N)
 
@@ -226,39 +226,39 @@ function main(args)
             best_cost = fitness
             best_chromosome = get_best_chromosome(brkga_data)
 
-            # improve 5 worst solutions
+            # # improve 5 worst solutions
 
-            for i in 1:5
+            # for i in 1:5
 
-                chromosome = get_chromosome(brkga_data, 1, brkga_data.params.population_size - i + 1)
-                sol = decoder(chromosome, instance, false, true)
-                swap = Swap(instance, sol)
-                firstImprovement!(swap)
+            #     chromosome = get_chromosome(brkga_data, 1, brkga_data.params.population_size - i + 1)
+            #     sol = decoder(chromosome, instance, false, true)
+            #     swap = Swap(instance, sol)
+            #     firstImprovement!(swap)
                 
-                new_chromosome = buildChromosome(instance, swap.sol)
-                inject_chromosome!(brkga_data, new_chromosome, 1, brkga_data.params.population_size - i + 1, convert(Float64, swap.sol.cost))
+            #     new_chromosome = buildChromosome(instance, swap.sol)
+            #     inject_chromosome!(brkga_data, new_chromosome, 1, brkga_data.params.population_size - i + 1, convert(Float64, swap.sol.cost))
             
-            end
+            # end
             
-            # improve 5 best solutions
-            for i in 1:5
+            # # improve 5 best solutions
+            # for i in 1:5
 
-                chromosome = get_chromosome(brkga_data, 1, i)
-                sol = decoder(chromosome, instance, false, true)
-                swap = Swap(instance, sol)
-                firstImprovement!(swap)
+            #     chromosome = get_chromosome(brkga_data, 1, i)
+            #     sol = decoder(chromosome, instance, false, true)
+            #     swap = Swap(instance, sol)
+            #     firstImprovement!(swap)
 
-                new_chromosome = buildChromosome(instance, swap.sol)
+            #     new_chromosome = buildChromosome(instance, swap.sol)
 
-                inject_chromosome!(brkga_data, new_chromosome, 1, i, convert(Float64, swap.sol.cost))
+            #     inject_chromosome!(brkga_data, new_chromosome, 1, i, convert(Float64, swap.sol.cost))
 
-                if i == 1
-                    best_chromosome = new_chromosome
-                end
+            #     if i == 1
+            #         best_chromosome = new_chromosome
+            #     end
 
-            end
+            # end
 
-            @printf("* %d | %.0f | %.2f \n", iteration, best_cost,
+            @printf("* %d | %.4f | %.2f \n", iteration, best_cost,
                     last_update_time)
         end
 
@@ -353,7 +353,6 @@ function main(args)
     print("\nNumber of homogenities: $num_homogenities")
     print("\nImprovements in the elite set: $num_elite_improvements")
     print("\nBest individual improvements: $num_best_improvements")
-    print("\nBest chromosome: $best_chromosome")
     print("\nBest cost: $best_cost")
 
 
