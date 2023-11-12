@@ -1,0 +1,224 @@
+%% 
+%% Copyright 2007-2020 Elsevier Ltd
+%% 
+%% This file is part of the 'Elsarticle Bundle'.
+%% ---------------------------------------------
+%% 
+%% It may be distributed under the conditions of the LaTeX Project Public
+%% License, either version 1.2 of this license or (at your option) any
+%% later version.  The latest version of this license is in
+%%    http://www.latex-project.org/lppl.txt
+%% and version 1.2 or later is part of all distributions of LaTeX
+%% version 1999/12/01 or later.
+%% 
+%% The list of all files belonging to the 'Elsarticle Bundle' is
+%% given in the file `manifest.txt'.
+%% 
+%% Template article for Elsevier's document class `elsarticle'
+%% with harvard style bibliographic references
+
+\documentclass[preprint,12pt]{elsarticle}
+
+%% Use the option review to obtain double line spacing
+%% \documentclass[preprint,review,12pt]{elsarticle}
+
+%% Use the options 1p,twocolumn; 3p; 3p,twocolumn; 5p; or 5p,twocolumn
+%% for a journal layout:
+%% \documentclass[final,1p,times]{elsarticle}
+%% \documentclass[final,1p,times,twocolumn]{elsarticle}
+%% \documentclass[final,3p,times]{elsarticle}
+%% \documentclass[final,3p,times,twocolumn]{elsarticle}
+%% \documentclass[final,5p,times]{elsarticle}
+%% \documentclass[final,5p,times,twocolumn]{elsarticle}
+
+%% For including figures, graphicx.sty has been loaded in
+%% elsarticle.cls. If you prefer to use the old commands
+%% please give \usepackage{epsfig}
+
+%% The amssymb package provides various useful mathematical symbols
+\usepackage{amssymb}
+%% The amsthm package provides extended theorem environments
+%% \usepackage{amsthm}
+
+%% The lineno packages adds line numbers. Start line numbering with
+%% \begin{linenumbers}, end it with \end{linenumbers}. Or switch it on
+%% for the whole article with \linenumbers.
+%% \usepackage{lineno}
+
+\journal{Journal}
+
+\begin{document}
+
+\begin{frontmatter}
+
+%% Title, authors and addresses
+
+%% use the tnoteref command within \title for footnotes;
+%% use the tnotetext command for theassociated footnote;
+%% use the fnref command within \author or \address for footnotes;
+%% use the fntext command for theassociated footnote;
+%% use the corref command within \author for corresponding author footnotes;
+%% use the cortext command for theassociated footnote;
+%% use the ead command for the email address,
+%% and the form \ead[url] for the home page:
+%% \title{Title\tnoteref{label1}}
+%% \tnotetext[label1]{}
+%% \author{Name\corref{cor1}\fnref{label2}}
+%% \ead{email address}
+%% \ead[url]{home page}
+%% \fntext[label2]{}
+%% \cortext[cor1]{}
+%% \affiliation{organization={},
+%%             addressline={},
+%%             city={},
+%%             postcode={},
+%%             state={},
+%%             country={}}
+%% \fntext[label3]{}
+
+\title{Biased Random Key Genetic Algorithm for the p-dispersion problem}
+
+%% use optional labels to link authors explicitly to addresses:
+%% \author[label1,label2]{}
+%% \affiliation[label1]{organization={},
+%%             addressline={},
+%%             city={},
+%%             postcode={},
+%%             state={},
+%%             country={}}
+%%
+%% \affiliation[label2]{organization={},
+%%             addressline={},
+%%             city={},
+%%             postcode={},
+%%             state={},
+%%             country={}}
+
+\author[PUC-Rio]{Lucas Ximenes Guilhon}
+
+\affiliation[inst1]{organization={Department of Industrial Engineering},%Department and Organization
+            addressline={Rua Marquês de São Vicente, 225}, 
+            city={Rio de Janeiro},
+            postcode={22451-900}, 
+            state={Rio de Janeiro},
+            country={Brazil}}
+
+
+\begin{abstract}
+
+The p-dispersion problem, a variant of the maximum dispersion problem, presents a challenging computational task with applications in various domains, notably facility location and optimization. This NP-hard problem involves selecting a subset of $p$ objects from a set of $n$, aiming to maximize the minimum dissimilarity between objects within the chosen subset. Despite years of research, the success of exact methods has hindered the exploration of heuristic approaches, leaving specific instance types under addressed. In this study, we propose a biased random key genetic algorithm (BRKGA) to tackle the p-dispersion problem and conduct a comparative analysis against established state-of-the-art methods. Computational analysis was performed using instances sourced from MDPLIB 2.0, encompassing Euclidean, Real, and Integer datasets. The results shed light on the performance of the BRKGA method in addressing this challenging problem and offer insights for its broader applications.\end{abstract}
+
+%%Graphical abstract
+% \begin{graphicalabstract}
+% \includegraphics{grabs}
+% \end{graphicalabstract}
+
+%%Research highlights
+% \begin{highlights}
+% \item Research highlight 1
+% \item Research highlight 2
+% \end{highlights}
+
+\begin{keyword}
+%% keywords here, in the form: keyword \sep keyword
+BRKGA \sep p-dispersion
+%% PACS codes here, in the form: \PACS code \sep code
+% \PACS 0000 \sep 1111
+%% MSC codes here, in the form: \MSC code \sep code
+%% or \MSC[2008] code \sep code (2000 is the default)
+% \MSC 0000 \sep 1111
+\end{keyword}
+
+\end{frontmatter}
+
+%% \linenumbers
+
+%% main text
+\section{Introduction}
+\label{sec:intro}
+
+The p-dispersion problem, also known as the max-min or maxmin-min version of the maximum dispersion problem, is a combinatorial optimization problem that can be described as follows:
+
+Given a set of $n$ objects and an $n \times n$ dissimilarity matrix, the goal is to identify a subset of $p$ objects in such a way that it maximizes the minimum dissimilarity between any pair of objects within this subset. This problem is classified as NP-hard \citet{Erkut1990-mo}, with diverse applications across various domains. One of the most prevalent applications is in facility location, where the objects represent facilities, and the dissimilarity values denote the distances between them. Ensuring maximum dispersion of facilities is critical for various reasons, including minimizing the impact of a single event on all facilities and reducing competition or overlap between facilities.
+
+The p-dispersion problem's versatility allows it to be adapted to specific scenarios, like selecting the most dispersed $p$ points from a Pareto front in a multi-objective optimization problem to ensure a well-rounded coverage of different preferences \citet{Dupin2023-vx}. It can also be applied to choosing the most diverse $p$ products in a portfolio to maximize the diversity of a product portfolio \citet{Erkut1990-mo}.
+
+Extensive research has been dedicated to the p-dispersion problem, resulting in a variety of solution methods. Unlike other maximum diversity problems, exact methods have demonstrated significant success in solving the p-dispersion problem, leading to relatively fewer studies on heuristic approaches. Nevertheless, current exact methods still face limitations in handling specific instance types, such as those with randomized dissimilarity matrices or scenarios involving a large number of facilities to be chosen. In this paper, we introduce a biased random key genetic algorithm (BRKGA) \citet{Goncalves2011-kp} as an innovative approach to address the p-dispersion problem. We also provide a comparative analysis of its performance against existing state-of-the-art methods.
+
+%%       \citet{<label>} ==> Jones et al. [21]
+%%       \citep{<label>} ==> [21]
+%%
+
+\section{Related work and problem formulation}
+The Max-Min version of the maximum dispersion problem (MDP) was coined p-dispersion by \citet{Moon1984-zi}, but it was \citet{Kuby1988-ii} who first proposed a mixed-integer linear programming for the discrete formulation of this problem. 
+\citet{Erkut1990-mo} then went on to improve this formulation and proposed a branch-and-bound algorithm to solve it. His model is shown in Equation \ref{eq:erkut}.
+\begin{equation}
+    \label{eq:erkut}
+    \begin{aligned}
+        \max \quad & z \\
+        \text{s.t.} \quad & z \leq M(2 - x_i - x_j) + d_{ij} \quad \forall i,j \in N \| i \leq j \\
+        & \sum_{i \in N} x_i = p \\
+        & x_i \in \{0,1\} \quad \forall i \in N
+    \end{aligned}
+\end{equation}
+where $N$ is the set of objects, $x_i$ is a binary variable indicating whether object $i$ is selected, $d_{ij}$ is the dissimilarity between objects $i$ and $j$, and $M$ is a large positive constant. 
+After these efforts to solve the p-dispersion problem exactly, heuristic methods started gaining traction, such as simulated annealing and tabu search in \citet{Kincaid1992-mp}, and GRASP in \citet{Ghosh1996-zm} and \citet{Resende2010-vr}. For a more in-depth
+review of every method mentioned above, we refer the reader to a review paper by \citet{Marti2022-ku}, which covers the history of maximum diversity problems and their solution methods. 
+However, after this initial wave of heuristic methods, the p-dispersion problem gained new integer programming formulations that were considerably more efficient than the original work done in the 90s. One formulation involves solving set packing
+feasibility problems in order to determine upper/lower bounds for the objective function, as seen in \citet{franco2015solving}. The way this is done is by solving the model in Equation \ref{eq:franco} inside a binary search
+scheme in the values of the dissimilarity matrix for finding the optimal value of $r$.
+\begin{equation}
+    \label{eq:franco}
+    \begin{aligned}
+        \max \quad & 0 \\
+        \text{s.t.} \quad & \sum_{i \in N} x_i = p \\
+        & x_i + x_j \leq 1 \quad i,j \in N \| d_{ij} \leq r \\
+        & x_i \in \{0,1\} \quad \forall i \in N
+    \end{aligned}
+\end{equation}
+This new formulation greatly increased the size of instance that could be solved to optimality, reaching up to 1000 objects, which when compared to the 100 objects that could be solved with the original formulation, is a significant improvement.
+The current state-of-the-art method for solving the p-dispersion problem is a method proposed by \citet{Contardo2020-vn}, which uses a clustering method to reduce the original problem into a set of smaller p-dispersion problems, and then solving them
+until optimality is proven. His method is capable of solving problems containing up to 100,000 objects which past methods cannot even come close to solving. The main drawback of this method is that it works mainly for instances with small values of $p$,
+failing to scale robustly for larger values of $p$. Something worth noting is that no fixed instance library was utilized in the benchmarks of previous work done on the p-dispersion problem, 
+which makes it difficult to properly compare the performance of different methods. This is why chose to use the MDPLIB 2.0 \citet{marti2021mdplib} as our instance library, which is a comprehensive library of instances designed for maximum diversity problems.
+In this project, we propose a biased random key genetic algorithm (BRKGA) \citet{Goncalves2011-kp} to tackle the p-dispersion problem and conduct a comparative analysis against established state-of-the-art methods. We aim to solve instances that other methods
+cannot solve, and also to provide a benchmark for future methods to compare themselves against.
+\section{Experimental Results}
+\subsection{Computational Environment}
+The computational experiments were conducted on a computer with an AMD Ryzen 7 6800U processor operating at 2.70 GHz, equipped with 16 GB of RAM, and running the Windows 11 operating system. The exact algorithm was implemented using Julia 1.8.5, with modeling facilitated by JuMP \citet{Lubin2023} and mathematical model solving performed with Gurobi 10.0.2. We adopted the Julia version of the BRKGA-MP-IPR framework \citet{Andrade2021-pe} as our chosen BRKGA implementation.
+
+\subsection{Instances}
+The instances used in this study were sourced from MDPLIB 2.0 \citet{marti2021mdplib}, a comprehensive library of instances designed for maximum diversity problems, containing a total of 770 instances. For the purposes of this paper, we focused exclusively on instances addressing the non-constrained version of the maximum diversity problem. These instances are categorized into three sets: Euclidean, Real, and Integer instances.
+
+The Euclidean dataset comprises 160 matrices, with values calculated as the Euclidean distances between randomly generated points, each having coordinates within the range of 0 to 10. Meanwhile, the Real and Integer sets consist of 140 and 170 instances, respectively. These sets feature matrices with numbers generated from uniform distributions of real and integer numbers. Each instance subset is further divided into subcategories, with more details available in the original paper \citet{marti2021mdplib}.
+\subsection{Instance optimality}
+
+%% The Appendices part is started with the command \appendix;
+%% appendix sections are then done as normal sections
+\appendix
+
+\section{Sample Appendix Section}
+\label{sec:sample:appendix}
+
+%% If you have bibdatabase file and want bibtex to generate the
+%% bibitems, please use
+%%
+\bibliographystyle{elsarticle-num-names} 
+\bibliography{cas-refs}
+
+%% else use the following coding to input the bibitems directly in the
+%% TeX file.
+
+% \begin{thebibliography}{00}
+
+% %% \bibitem[Author(year)]{label}
+% %% Text of bibliographic item
+
+% \bibitem[ ()]{}
+
+% \end{thebibliography}
+\end{document}
+
+\endinput
+%%
+%% End of file `elsarticle-template-num-names.tex'.

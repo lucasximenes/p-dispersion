@@ -39,6 +39,7 @@ using Combinatorics, StatsBase, LinearAlgebra
 include("Instance.jl")
 include("Utils.jl")
 include("Neighborhoods/Swap.jl")
+include("Heuristics.jl")
 
 ################################################################################
 # Enumerations and constants
@@ -153,7 +154,7 @@ function main(args)
 
     println("\n[$(Dates.Time(Dates.now()))] Reading SCP data...")
 
-    instance = generateKubyInstance(200)
+    instance = readInstance(instance_file)
 
     println("\n[$(Dates.Time(Dates.now()))] Building BRKGA data...")
 
@@ -166,6 +167,15 @@ function main(args)
     initial_chromosome = rand(instance.N)
 
     println("\n[$(Dates.Time(Dates.now()))] Initializing BRKGA data...")
+
+    initialPopulation = Vector{Vector{Float64}}()
+    for i in 1:10
+        sol = semiGreedyDeletion(instance)
+        chromosome = buildChromosome(instance, sol)
+        push!(initialPopulation, chromosome)
+    end
+
+    set_initial_population!(brkga_data, initialPopulation)
     initialize!(brkga_data)
 
     ########################################
