@@ -2,6 +2,7 @@ struct PDInstance <: AbstractInstance
     mat::Matrix{Float64}
     N::Int64
     P::Int64
+    PreProcessing::Matrix{Int64}
 end
 mutable struct Solution
     chosen::Vector{Int64}
@@ -11,7 +12,13 @@ end
 function readInstance(filename::String)
     f = open(filename)
     data = readline(f)
-    n, p = parse.(Int64, split(data, " "))
+    firstLine = split(data, " ")
+    if length(firstLine) == 1
+        n = parse(Int64, firstLine[1])
+        p = ceil(Int64, n / 10)
+    else
+        n, p = parse.(Int64, firstLine)
+    end
     mat = zeros(n, n)
     for line in eachline(f)
         data = split(line, " ")
@@ -23,7 +30,14 @@ function readInstance(filename::String)
         mat[j, i] = d
     end
     close(f)
-    return PDInstance(mat, n, p)
+
+    preProcess = zeros(Int64, n, p)
+    ## fill preProcess with the p closest points to each point
+    for i in 1:n
+        preProcess[i, :] = sortperm(mat[i, :], rev=true)[1:p]
+    end
+
+    return PDInstance(mat, n, p, preProcess)
 end
 
 function readPalubeckisInstance(filename::String)

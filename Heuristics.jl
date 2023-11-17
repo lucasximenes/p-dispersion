@@ -1,6 +1,3 @@
-function greedyDeletion(instance::PDInstance)
-end
-
 function semiGreedyDeletion(instance::PDInstance)
     vet = [(i, j, instance.mat[i, j]) for i in 1:instance.N for j in i + 1:instance.N]
     sort!(vet, by = x -> x[3])

@@ -22,10 +22,6 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 ################################################################################
-
-push!(LOAD_PATH, "../..")
-push!(LOAD_PATH, ".")
-
 using BrkgaMpIpr
 
 import Base: parse
@@ -39,6 +35,7 @@ using Combinatorics, StatsBase, LinearAlgebra
 include("Instance.jl")
 include("Utils.jl")
 include("Neighborhoods/Swap.jl")
+include("Neighborhoods/FastSwap.jl")
 include("Heuristics.jl")
 
 ################################################################################
@@ -87,24 +84,17 @@ end
 Proceed with the optimization. Create to avoid spread `global` keywords around
 the code.
 """
-function main(args)
-    configuration_file = args["<config_file>"]
-    instance_file = args["<instance_file>"]
-    seed = parse(Int64, args["<seed>"])
-    stop_rule = parse(StopRule, args["<stop_rule>"])
+function main(instance)
+    configuration_file = "config.conf"
+    instance_file = instance
+    
+    seed = 10
+    stop_rule = GENERATIONS
+    stop_argument = 500
 
-    if stop_rule == TARGET
-        stop_argument = parse(Float64, args["<stop_arg>"])
-    else
-        stop_argument = parse(Int64, args["<stop_arg>"])
-    end
+    maximum_time = 120.0
 
-    maximum_time = parse(Float64, args["<max_time>"])
-    if maximum_time <= 0.0
-        error("Maximum time must be larger than 0.0. Given $maximum_time.")
-    end
-
-    perform_evolution = !args["--no_evolution"]
+    perform_evolution = true
 
     ########################################
     # Load config file and show basic info.
@@ -238,20 +228,22 @@ function main(args)
 
             # # improve 5 worst solutions
 
-            # for i in 1:5
+            for i in 1:5
 
-            #     chromosome = get_chromosome(brkga_data, 1, brkga_data.params.population_size - i + 1)
-            #     sol = decoder(chromosome, instance, false, true)
-            #     swap = Swap(instance, sol)
-            #     firstImprovement!(swap)
+                chromosome = get_chromosome(brkga_data, 1, brkga_data.params.population_size - i + 1)
+                sol = decoder(chromosome, instance, false, true)
+                swap = FastSwap(instance, sol)
+                firstImprovement!(swap)
+            
+                # println("Fast swap executed")
                 
-            #     new_chromosome = buildChromosome(instance, swap.sol)
-            #     inject_chromosome!(brkga_data, new_chromosome, 1, brkga_data.params.population_size - i + 1, convert(Float64, swap.sol.cost))
+                new_chromosome = buildChromosome(instance, swap.sol)
+                inject_chromosome!(brkga_data, new_chromosome, 1, brkga_data.params.population_size - i + 1, convert(Float64, swap.sol.cost))
             
-            # end
+            end
             
-            # # improve 5 best solutions
-            # for i in 1:5
+            # improve 5 best solutions
+            # for i in 1:1
 
             #     chromosome = get_chromosome(brkga_data, 1, i)
             #     sol = decoder(chromosome, instance, false, true)
@@ -259,6 +251,7 @@ function main(args)
             #     firstImprovement!(swap)
 
             #     new_chromosome = buildChromosome(instance, swap.sol)
+            #     # println("Improved best solution")
 
             #     inject_chromosome!(brkga_data, new_chromosome, 1, i, convert(Float64, swap.sol.cost))
 
@@ -351,6 +344,9 @@ function main(args)
     total_elapsed_time = time() - start_time
     total_num_iterations = iteration
 
+    println("Cost of the worst chromosome: $(decoder(get_chromosome(brkga_data, 1, brkga_data.params.population_size), instance, false, false))")
+    println("Cost of the best chromosome: $(decoder(get_chromosome(brkga_data, 1, 1), instance, false, false))")
+
     println("[$(Dates.Time(Dates.now()))] End of optimization")
     print("\nTotal number of iterations: $total_num_iterations")
     print("\nLast update iteration: $last_update_iteration")
@@ -365,7 +361,7 @@ function main(args)
     print("\nBest individual improvements: $num_best_improvements")
     print("\nBest cost: $best_cost")
 
-
+    return best_cost, total_elapsed_time
 end
 
 ################################################################################
@@ -400,7 +396,7 @@ Options:
 
     -h --help           Produce help message.
 """
-args = DocOpt.docopt(doc)
-main(args)
+# args = DocOpt.docopt(doc)
+# main(args)
 
 #julia --project=./MH  main_complete.jl -c config.conf -s 10 -r I -a 100 -t 60 -i "Data/instances/scpd1.txt"

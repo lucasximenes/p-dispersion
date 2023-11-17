@@ -37,6 +37,8 @@
 
 %% The amssymb package provides various useful mathematical symbols
 \usepackage{amssymb}
+\usepackage{amsmath}
+
 %% The amsthm package provides extended theorem environments
 %% \usepackage{amsthm}
 
@@ -139,66 +141,68 @@ BRKGA \sep p-dispersion
 
 The p-dispersion problem, also known as the max-min or maxmin-min version of the maximum dispersion problem, is a combinatorial optimization problem that can be described as follows:
 
-Given a set of $n$ objects and an $n \times n$ dissimilarity matrix, the goal is to identify a subset of $p$ objects in such a way that it maximizes the minimum dissimilarity between any pair of objects within this subset. This problem is classified as NP-hard \citet{Erkut1990-mo}, with diverse applications across various domains. One of the most prevalent applications is in facility location, where the objects represent facilities, and the dissimilarity values denote the distances between them. Ensuring maximum dispersion of facilities is critical for various reasons, including minimizing the impact of a single event on all facilities and reducing competition or overlap between facilities.
+Given a set of $n$ objects and an $n \times n$ dissimilarity matrix, the goal is to identify a subset of $p$ objects in such a way that it maximizes the minimum dissimilarity between any pair of objects within this subset. This problem is classified as NP-hard \cite{Erkut1990-mo}, with diverse applications across various domains. One of the most prevalent applications is in facility location, where the objects represent facilities, and the dissimilarity values denote the distances between them. Ensuring maximum dispersion of facilities is critical for various reasons, including minimizing the impact of a single event on all facilities and reducing competition or overlap between facilities.
 
-The p-dispersion problem's versatility allows it to be adapted to specific scenarios, like selecting the most dispersed $p$ points from a Pareto front in a multi-objective optimization problem to ensure a well-rounded coverage of different preferences \citet{Dupin2023-vx}. It can also be applied to choosing the most diverse $p$ products in a portfolio to maximize the diversity of a product portfolio \citet{Erkut1990-mo}.
+The p-dispersion problem's versatility allows it to be adapted to specific scenarios, like selecting the most dispersed $p$ points from a Pareto front in a multi-objective optimization problem to ensure a well-rounded coverage of different preferences \cite{Dupin2023-vx}. It can also be applied to choosing the most diverse $p$ products in a portfolio to maximize the diversity of a product portfolio \cite{Erkut1990-mo}.
 
-Extensive research has been dedicated to the p-dispersion problem, resulting in a variety of solution methods. Unlike other maximum diversity problems, exact methods have demonstrated significant success in solving the p-dispersion problem, leading to relatively fewer studies on heuristic approaches. Nevertheless, current exact methods still face limitations in handling specific instance types, such as those with randomized dissimilarity matrices or scenarios involving a large number of facilities to be chosen. In this paper, we introduce a biased random key genetic algorithm (BRKGA) \citet{Goncalves2011-kp} as an innovative approach to address the p-dispersion problem. We also provide a comparative analysis of its performance against existing state-of-the-art methods.
+Extensive research has been dedicated to the p-dispersion problem, resulting in a variety of solution methods. Unlike other maximum diversity problems, exact methods have demonstrated significant success in solving the p-dispersion problem, leading to relatively fewer studies on heuristic approaches. Nevertheless, current exact methods still face limitations in handling specific instance types, such as those with randomized dissimilarity matrices or scenarios involving a large number of facilities to be chosen. In this paper, we introduce a biased random key genetic algorithm (BRKGA) \cite{Goncalves2011-kp} as an innovative approach to address the p-dispersion problem. We also provide a comparative analysis of its performance against existing state-of-the-art methods.
 
 %%       \citet{<label>} ==> Jones et al. [21]
 %%       \citep{<label>} ==> [21]
 %%
 
 \section{Related work and problem formulation}
-The Max-Min version of the maximum dispersion problem (MDP) was coined p-dispersion by \citet{Moon1984-zi}, but it was \citet{Kuby1988-ii} who first proposed a mixed-integer linear programming for the discrete formulation of this problem. 
-\citet{Erkut1990-mo} then went on to improve this formulation and proposed a branch-and-bound algorithm to solve it. His model is shown in Equation \ref{eq:erkut}.
+The Max-Min version of the maximum dispersion problem (MDP), commonly known as the p-dispersion problem, was initially introduced by \citet{Moon1984-zi}. However, it was \citet{Kuby1988-ii} who pioneered the development of a mixed-integer linear programming formulation for solving this discrete optimization problem. Subsequently, \citet{Erkut1990-mo} enhanced this formulation and proposed a branch-and-bound algorithm for its solution, represented by Equation \ref{eq:erkut}. In this equation, $N$ denotes the set of objects, $x_i$ is a binary variable indicating the selection of object $i$, $d_{ij}$ signifies the dissimilarity between objects $i$ and $j$, and $M$ is a substantial positive constant.
+
 \begin{equation}
     \label{eq:erkut}
     \begin{aligned}
         \max \quad & z \\
-        \text{s.t.} \quad & z \leq M(2 - x_i - x_j) + d_{ij} \quad \forall i,j \in N \| i \leq j \\
+        \text{s.t.} \quad & z \leq M(2 - x_i - x_j) + d_{ij} \quad \forall i,j \in N \ | \ i \leq j \\
         & \sum_{i \in N} x_i = p \\
         & x_i \in \{0,1\} \quad \forall i \in N
     \end{aligned}
 \end{equation}
-where $N$ is the set of objects, $x_i$ is a binary variable indicating whether object $i$ is selected, $d_{ij}$ is the dissimilarity between objects $i$ and $j$, and $M$ is a large positive constant. 
-After these efforts to solve the p-dispersion problem exactly, heuristic methods started gaining traction, such as simulated annealing and tabu search in \citet{Kincaid1992-mp}, and GRASP in \citet{Ghosh1996-zm} and \citet{Resende2010-vr}. For a more in-depth
-review of every method mentioned above, we refer the reader to a review paper by \citet{Marti2022-ku}, which covers the history of maximum diversity problems and their solution methods. 
-However, after this initial wave of heuristic methods, the p-dispersion problem gained new integer programming formulations that were considerably more efficient than the original work done in the 90s. One formulation involves solving set packing
-feasibility problems in order to determine upper/lower bounds for the objective function, as seen in \citet{franco2015solving}. The way this is done is by solving the model in Equation \ref{eq:franco} inside a binary search
-scheme in the values of the dissimilarity matrix for finding the optimal value of $r$.
+
+Following initial efforts to solve the p-dispersion problem exactly, the landscape shifted towards heuristic methods. Techniques like simulated annealing and tabu search were explored by \citet{Kincaid1992-mp}, while \citet{Ghosh1996-zm} and \citet{Resende2010-vr} introduced the GRASP heuristic. For an in-depth review of these methods, a comprehensive survey by \citet{Marti2022-ku} provides an extensive overview of the history of maximum diversity problems and their corresponding solution strategies.
+
+However, a significant breakthrough occurred with the development of more efficient integer programming formulations in the 2010s. Notably,\citet{franco2015solving} introduced a set packing-based approach to establish upper and lower bounds for the objective function. Equation \ref{eq:franco} presents this formulation, which allows for a binary search within the dissimilarity matrix to find the optimal value of $r$. This enhanced formulation vastly expanded the solvability of larger instances, accommodating up to 1000 objects, compared to the original formulation's limitation of 100 objects.
+
 \begin{equation}
     \label{eq:franco}
     \begin{aligned}
         \max \quad & 0 \\
         \text{s.t.} \quad & \sum_{i \in N} x_i = p \\
-        & x_i + x_j \leq 1 \quad i,j \in N \| d_{ij} \leq r \\
+        & x_i + x_j \leq 1 \quad i,j \in N \ |\  d_{ij} \leq r \\
         & x_i \in \{0,1\} \quad \forall i \in N
     \end{aligned}
 \end{equation}
-This new formulation greatly increased the size of instance that could be solved to optimality, reaching up to 1000 objects, which when compared to the 100 objects that could be solved with the original formulation, is a significant improvement.
-The current state-of-the-art method for solving the p-dispersion problem is a method proposed by \citet{Contardo2020-vn}, which uses a clustering method to reduce the original problem into a set of smaller p-dispersion problems, and then solving them
-until optimality is proven. His method is capable of solving problems containing up to 100,000 objects which past methods cannot even come close to solving. The main drawback of this method is that it works mainly for instances with small values of $p$,
-failing to scale robustly for larger values of $p$. Something worth noting is that no fixed instance library was utilized in the benchmarks of previous work done on the p-dispersion problem, 
-which makes it difficult to properly compare the performance of different methods. This is why chose to use the MDPLIB 2.0 \citet{marti2021mdplib} as our instance library, which is a comprehensive library of instances designed for maximum diversity problems.
-In this project, we propose a biased random key genetic algorithm (BRKGA) \citet{Goncalves2011-kp} to tackle the p-dispersion problem and conduct a comparative analysis against established state-of-the-art methods. We aim to solve instances that other methods
-cannot solve, and also to provide a benchmark for future methods to compare themselves against.
+
+The current state-of-the-art method for the p-dispersion problem, proposed by \citet{Contardo2020-vn}, employs a clustering technique to decompose the problem into a set of smaller p-dispersion problems. This method excels at solving instances with a high number of objects, reaching up to 100,000 objects, a feat unattainable by previous approaches. Nonetheless, it exhibits limited scalability for larger values of $p$.
+
+It's important to note that previous research on the p-dispersion problem lacked a standardized instance library, making it challenging to compare the performance of different methods. To address this, we adopted MDPLIB 2.0 \citep{marti2021mdplib}, a comprehensive library designed for maximum diversity problems, in our benchmarking efforts.
+
+In this study, we propose the utilization of a biased random key genetic algorithm (BRKGA) \citep{Goncalves2011-kp} to address the p-dispersion problem and offer a comparative assessment against existing state-of-the-art methods. Our objective is twofold: to tackle instances that elude other approaches and to establish a benchmark for future methods to evaluate their performance against.
+\section{Solving the p-dispersion problem with a BRKGA}
+\label{sec:brkga}
+\subsection{Chromosome representation and decoder}
+\subsection{Local search}
+\subsection{Evolutionary process}
+
+
 \section{Experimental Results}
 \subsection{Computational Environment}
-The computational experiments were conducted on a computer with an AMD Ryzen 7 6800U processor operating at 2.70 GHz, equipped with 16 GB of RAM, and running the Windows 11 operating system. The exact algorithm was implemented using Julia 1.8.5, with modeling facilitated by JuMP \citet{Lubin2023} and mathematical model solving performed with Gurobi 10.0.2. We adopted the Julia version of the BRKGA-MP-IPR framework \citet{Andrade2021-pe} as our chosen BRKGA implementation.
+The computational experiments were conducted on a computer with an AMD Ryzen 7 6800U processor operating at 2.70 GHz, equipped with 16 GB of RAM, and running the Windows 11 operating system. The exact algorithm was implemented using Julia 1.8.5, with modeling facilitated by JuMP \cite{Lubin2023} and mathematical model solving performed with Gurobi 10.0.2. We adopted the Julia version of the BRKGA-MP-IPR framework \cite{Andrade2021-pe} as our chosen BRKGA implementation.
 
 \subsection{Instances}
-The instances used in this study were sourced from MDPLIB 2.0 \citet{marti2021mdplib}, a comprehensive library of instances designed for maximum diversity problems, containing a total of 770 instances. For the purposes of this paper, we focused exclusively on instances addressing the non-constrained version of the maximum diversity problem. These instances are categorized into three sets: Euclidean, Real, and Integer instances.
+The instances used in this study were sourced from MDPLIB 2.0 \cite{marti2021mdplib}, a comprehensive library of instances designed for maximum diversity problems, containing a total of 770 instances. For the purposes of this paper, we focused exclusively on instances addressing the non-constrained version of the maximum diversity problem. These instances are categorized into three sets: Euclidean, Real, and Integer instances.
 
-The Euclidean dataset comprises 160 matrices, with values calculated as the Euclidean distances between randomly generated points, each having coordinates within the range of 0 to 10. Meanwhile, the Real and Integer sets consist of 140 and 170 instances, respectively. These sets feature matrices with numbers generated from uniform distributions of real and integer numbers. Each instance subset is further divided into subcategories, with more details available in the original paper \citet{marti2021mdplib}.
+The Euclidean dataset comprises 160 matrices, with values calculated as the Euclidean distances between randomly generated points, each having coordinates within the range of 0 to 10. Meanwhile, the Real and Integer sets consist of 140 and 170 instances, respectively. These sets feature matrices with numbers generated from uniform distributions of real and integer numbers. Each instance subset is further divided into subcategories, with more details available in the original paper \cite{marti2021mdplib}.
 \subsection{Instance optimality}
 
 %% The Appendices part is started with the command \appendix;
 %% appendix sections are then done as normal sections
-\appendix
 
-\section{Sample Appendix Section}
-\label{sec:sample:appendix}
 
 %% If you have bibdatabase file and want bibtex to generate the
 %% bibitems, please use
