@@ -84,15 +84,15 @@ end
 Proceed with the optimization. Create to avoid spread `global` keywords around
 the code.
 """
-function main(instance)
+function main(instance, seedParam, numChrom, numElite, numMutants, instParam)
     configuration_file = "config.conf"
     instance_file = instance
     
-    seed = 10
-    stop_rule = GENERATIONS
-    stop_argument = 500
+    seed = seedParam
+    stop_rule = IMPROVEMENT
+    stop_argument = 1000
 
-    maximum_time = 120.0
+    maximum_time = 300.0
 
     perform_evolution = true
 
@@ -102,6 +102,9 @@ function main(instance)
 
     brkga_params, control_params = load_configuration(configuration_file)
 
+    brkga_params.population_size = numChrom
+    brkga_params.elite_percentage = numElite
+    brkga_params.mutants_percentage = numMutants
     # simulate the classic BRKGA
     brkga_params.num_elite_parents = 1
     brkga_params.total_parents = 2
@@ -144,7 +147,7 @@ function main(instance)
 
     println("\n[$(Dates.Time(Dates.now()))] Reading SCP data...")
 
-    instance = readInstance(instance_file)
+    instance = instParam
 
     println("\n[$(Dates.Time(Dates.now()))] Building BRKGA data...")
 
@@ -228,19 +231,19 @@ function main(instance)
 
             # # improve 5 worst solutions
 
-            for i in 1:5
+            # for i in 1:5
 
-                chromosome = get_chromosome(brkga_data, 1, brkga_data.params.population_size - i + 1)
-                sol = decoder(chromosome, instance, false, true)
-                swap = FastSwap(instance, sol)
-                firstImprovement!(swap)
+            #     chromosome = get_chromosome(brkga_data, 1, brkga_data.params.population_size - i + 1)
+            #     sol = decoder(chromosome, instance, false, true)
+            #     swap = FastSwap(instance, sol)
+            #     firstImprovement!(swap)
             
-                # println("Fast swap executed")
+            #     # println("Fast swap executed")
                 
-                new_chromosome = buildChromosome(instance, swap.sol)
-                inject_chromosome!(brkga_data, new_chromosome, 1, brkga_data.params.population_size - i + 1, convert(Float64, swap.sol.cost))
+            #     new_chromosome = buildChromosome(instance, swap.sol)
+            #     inject_chromosome!(brkga_data, new_chromosome, 1, brkga_data.params.population_size - i + 1, convert(Float64, swap.sol.cost))
             
-            end
+            # end
             
             # improve 5 best solutions
             # for i in 1:1

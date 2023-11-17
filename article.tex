@@ -185,10 +185,19 @@ It's important to note that previous research on the p-dispersion problem lacked
 In this study, we propose the utilization of a biased random key genetic algorithm (BRKGA) \citep{Goncalves2011-kp} to address the p-dispersion problem and offer a comparative assessment against existing state-of-the-art methods. Our objective is twofold: to tackle instances that elude other approaches and to establish a benchmark for future methods to evaluate their performance against.
 \section{Solving the p-dispersion problem with a BRKGA}
 \label{sec:brkga}
-\subsection{Chromosome representation and decoder}
-\subsection{Local search}
-\subsection{Evolutionary process}
+The Biased Random Key Genetic Algorithm (BRKGA) is a powerful optimization technique used to solve complex combinatorial problems. It operates based on a chromosome representation comprising vectors of real numbers typically constrained within the range of [0, 1]. These chromosomes encode potential solutions to the problem at hand. The decoding mechanism in a BRKGA is crucial—transforming these continuous representations into feasible and meaningful solutions. In the context of the p-dispersion problem, the BRKGA employs a decoder responsible for selecting the $p$ objects that form a solution. This process involves sorting the chromosome and choosing the $p$ elements corresponding to the indices of the $p$ smallest values in the chromosome.
 
+\subsection{Chromosome representation and decoder}
+As mentioned before, the BRKGA represents solutions as chromosomes, which are vectors of real numbers in the range of $[0,1]$. And in order for this representation to be useful, a decoder is required to transform the chromosome into a feasible solution. In the case of the p-dispersion problem, the decoder is responsible for selecting the $p$ objects with which the solution will be composed. In our case, this is done by sorting the chromosome and setting the $p$'s equal to the indices of the $p$ smallest values in the chromosome.
+This process is ilustrated in the pseudocode below: 
+\subsection{Local search}
+Two neighborhoods were explored in this study and both of them were swap neighborhoods. The firt one, called \textit{Fast Swap}, uses a preprocessed $n\times p$ matrix that contains the closest $p$ points to every point in the instance. This matrix is calculated once and used in every iteration of the local search. The way it works is that it finds the pair in the solution that contains the smallest distance, and then it attemps to swap one of the points in the pair by one of it's $p$ closest points. If the swap improves the solution, it is accepted.
+The second neighborhood, called \textit{Swap}, is a more traditional swap neighborhood, where we evaluate the swap of every point $p$ in the solution with every other point $n$ that is not in the solution. If the swap improves the solution, it is accepted.
+The pseudocode for both neighborhoods is presented below:
+\subsection{Evolutionary process}
+The evolutionary process in our BRKGA implementation involves multiple stages. Initially, an initial population of solutions, represented as chromosomes, is generated randomly. These solutions evolve iteratively through a series of genetic operations like crossover and mutation.
+
+During each iteration of the evolution loop, the top five and bottom five solutions from the current population are selected based on their fitness. A local search procedure is then applied exclusively to these ten solutions. This local search aims to refine the solutions further by exploring their neighborhood for potential improvements. Importantly, this local search is not applied to the entirety of the population, but only to these ten solutions. After local search, the evolutionary process continues by performing genetic operations on the entire population, iterating towards potentially better solutions. This iterative process continues until a termination criterion is met or a specified number of generations is reached.
 
 \section{Experimental Results}
 \subsection{Computational Environment}
