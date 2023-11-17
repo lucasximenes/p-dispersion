@@ -33,7 +33,7 @@ function executeTests()
         println("====================================")
         instance = readInstance("Instances/test/$file")
         for i in axes(confs, 1)
-            val, time = main("Instances/test/$file", convert(Int64, confs[i, 1]), max(ceil(Int64, instance.N * confs[i, 2]), 300), confs[i, 3], confs[i, 4], instance)
+            val, time = main("Instances/test/$file", convert(Int64, confs[i, 1]), max(ceil(Int64, instance.N * confs[i, 2]), 50), confs[i, 3], confs[i, 4], instance)
             push!(df, [file, val, time, i])
         end
     end
