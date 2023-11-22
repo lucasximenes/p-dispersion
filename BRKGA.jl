@@ -84,7 +84,7 @@ end
 Proceed with the optimization. Create to avoid spread `global` keywords around
 the code.
 """
-function main(instance, seedParam, numChrom, numElite, numMutants, instParam)
+function main(instance, seedParam, numChrom, numElite, numMutants, instParam, localSearch::Bool=false)
     configuration_file = "config.conf"
     instance_file = instance
     
@@ -229,40 +229,43 @@ function main(instance, seedParam, numChrom, numElite, numMutants, instParam)
             best_cost = fitness
             best_chromosome = get_best_chromosome(brkga_data)
 
-            # # improve 5 worst solutions
+            if localSearch && update_offset > 500
 
-            # for i in 1:5
+                println("doing local search")
 
-            #     chromosome = get_chromosome(brkga_data, 1, brkga_data.params.population_size - i + 1)
-            #     sol = decoder(chromosome, instance, false, true)
-            #     swap = FastSwap(instance, sol)
-            #     firstImprovement!(swap)
-            
-            #     # println("Fast swap executed")
+                # improve 5 worst solutions
+
+                for i in 1:5
+
+                    chromosome = get_chromosome(brkga_data, 1, brkga_data.params.population_size - i + 1)
+                    sol = decoder(chromosome, instance, false, true)
+                    swap = FastSwap(instance, sol)
+                    firstImprovement!(swap)
+                                    
+                    new_chromosome = buildChromosome(instance, swap.sol)
+                    inject_chromosome!(brkga_data, new_chromosome, 1, brkga_data.params.population_size - i + 1, convert(Float64, swap.sol.cost))
+
+                end
                 
-            #     new_chromosome = buildChromosome(instance, swap.sol)
-            #     inject_chromosome!(brkga_data, new_chromosome, 1, brkga_data.params.population_size - i + 1, convert(Float64, swap.sol.cost))
-            
-            # end
-            
-            # improve 5 best solutions
-            # for i in 1:1
+                # improve 5 best solutions
+                
+                for i in 1:5
 
-            #     chromosome = get_chromosome(brkga_data, 1, i)
-            #     sol = decoder(chromosome, instance, false, true)
-            #     swap = Swap(instance, sol)
-            #     firstImprovement!(swap)
+                    chromosome = get_chromosome(brkga_data, 1, i)
+                    sol = decoder(chromosome, instance, false, true)
+                    swap = FastSwap(instance, sol)
+                    firstImprovement!(swap)
 
-            #     new_chromosome = buildChromosome(instance, swap.sol)
-            #     # println("Improved best solution")
+                    new_chromosome = buildChromosome(instance, swap.sol)
 
-            #     inject_chromosome!(brkga_data, new_chromosome, 1, i, convert(Float64, swap.sol.cost))
+                    inject_chromosome!(brkga_data, new_chromosome, 1, i, convert(Float64, swap.sol.cost))
 
-            #     if i == 1
-            #         best_chromosome = new_chromosome
-            #     end
+                    if i == 1
+                        best_chromosome = new_chromosome
+                    end
 
-            # end
+                end
+            end
 
             @printf("* %d | %.4f | %.2f \n", iteration, best_cost,
                     last_update_time)
