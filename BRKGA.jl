@@ -84,11 +84,26 @@ end
 Proceed with the optimization. Create to avoid spread `global` keywords around
 the code.
 """
-function main(instance, seedParam, numChrom, numElite, numMutants, instParam, localSearch::Bool=false)
-    configuration_file = "config.conf"
-    instance_file = instance
+function main(args)
+    println(args)
+
+    params = args
+    i = 1
+    for param in params
+        if param == "-i"
+            break
+        end
+        i += 1
+    end
+
+    instance_file = params[i + 1]
+    numElite = parse(Float64, params[i + 3])
+    numMutants = parse(Float64, params[i + 5])
+    pop = parse(Int64, params[i + 7])
+
+    configuration_file = "/home/lucas.guilhon/IND2602/p-dispersion/config.conf"
     
-    seed = seedParam
+    seed = 5
     stop_rule = IMPROVEMENT
     stop_argument = 1000
 
@@ -102,7 +117,7 @@ function main(instance, seedParam, numChrom, numElite, numMutants, instParam, lo
 
     brkga_params, control_params = load_configuration(configuration_file)
 
-    brkga_params.population_size = numChrom
+    brkga_params.population_size = pop
     brkga_params.elite_percentage = numElite
     brkga_params.mutants_percentage = numMutants
     # simulate the classic BRKGA
@@ -147,7 +162,7 @@ function main(instance, seedParam, numChrom, numElite, numMutants, instParam, lo
 
     println("\n[$(Dates.Time(Dates.now()))] Reading SCP data...")
 
-    instance = instParam
+    instance = readInstance(instance_file)
 
     println("\n[$(Dates.Time(Dates.now()))] Building BRKGA data...")
 
@@ -229,43 +244,43 @@ function main(instance, seedParam, numChrom, numElite, numMutants, instParam, lo
             best_cost = fitness
             best_chromosome = get_best_chromosome(brkga_data)
 
-            if localSearch && update_offset > 500
+            # if localSearch && update_offset > 500
 
-                println("doing local search")
+            #     println("doing local search")
 
-                # improve 5 worst solutions
+            #     # improve 5 worst solutions
 
-                for i in 1:5
+            #     for i in 1:5
 
-                    chromosome = get_chromosome(brkga_data, 1, brkga_data.params.population_size - i + 1)
-                    sol = decoder(chromosome, instance, false, true)
-                    swap = FastSwap(instance, sol)
-                    firstImprovement!(swap)
+            #         chromosome = get_chromosome(brkga_data, 1, brkga_data.params.population_size - i + 1)
+            #         sol = decoder(chromosome, instance, false, true)
+            #         swap = FastSwap(instance, sol)
+            #         firstImprovement!(swap)
                                     
-                    new_chromosome = buildChromosome(instance, swap.sol)
-                    inject_chromosome!(brkga_data, new_chromosome, 1, brkga_data.params.population_size - i + 1, convert(Float64, swap.sol.cost))
+            #         new_chromosome = buildChromosome(instance, swap.sol)
+            #         inject_chromosome!(brkga_data, new_chromosome, 1, brkga_data.params.population_size - i + 1, convert(Float64, swap.sol.cost))
 
-                end
+            #     end
                 
-                # improve 5 best solutions
+            #     # improve 5 best solutions
                 
-                for i in 1:5
+            #     for i in 1:5
 
-                    chromosome = get_chromosome(brkga_data, 1, i)
-                    sol = decoder(chromosome, instance, false, true)
-                    swap = FastSwap(instance, sol)
-                    firstImprovement!(swap)
+            #         chromosome = get_chromosome(brkga_data, 1, i)
+            #         sol = decoder(chromosome, instance, false, true)
+            #         swap = FastSwap(instance, sol)
+            #         firstImprovement!(swap)
 
-                    new_chromosome = buildChromosome(instance, swap.sol)
+            #         new_chromosome = buildChromosome(instance, swap.sol)
 
-                    inject_chromosome!(brkga_data, new_chromosome, 1, i, convert(Float64, swap.sol.cost))
+            #         inject_chromosome!(brkga_data, new_chromosome, 1, i, convert(Float64, swap.sol.cost))
 
-                    if i == 1
-                        best_chromosome = new_chromosome
-                    end
+            #         if i == 1
+            #             best_chromosome = new_chromosome
+            #         end
 
-                end
-            end
+            #     end
+            # end
 
             @printf("* %d | %.4f | %.2f \n", iteration, best_cost,
                     last_update_time)
@@ -359,13 +374,12 @@ function main(instance, seedParam, numChrom, numElite, numMutants, instParam, lo
     @printf("\nTotal optimization time: %.2f", total_elapsed_time)
     @printf("\nLast update time: %.2f", last_update_time)
     print("\nLarge number of iterations between improvements: $large_offset")
-
     @printf("\nTotal path relink time: %.2f", path_relink_time)
     print("\nTotal path relink calls: $num_path_relink_calls")
     print("\nNumber of homogenities: $num_homogenities")
     print("\nImprovements in the elite set: $num_elite_improvements")
-    print("\nBest individual improvements: $num_best_improvements")
-    print("\nBest cost: $best_cost")
+    println("\nBest individual improvements: $num_best_improvements")
+    println("$(-best_cost)")
 
     return best_cost, total_elapsed_time
 end
@@ -403,6 +417,6 @@ Options:
     -h --help           Produce help message.
 """
 # args = DocOpt.docopt(doc)
-# main(args)
+main(ARGS)
 
 #julia --project=./MH  main_complete.jl -c config.conf -s 10 -r I -a 100 -t 60 -i "Data/instances/scpd1.txt"
