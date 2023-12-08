@@ -6,7 +6,7 @@ CONFIG_ID="$1"
 
 INSTANCE_ID="$2"
 
-SEED="$3"
+SEED="${3}"
 
 INSTANCE="${4}"
 
@@ -22,7 +22,7 @@ EXE="/home/lucas.guilhon/IND2602/p-dispersion/BRKGA.jl"
 
 JL_PROJECT="/home/lucas.guilhon/IND2602/p-dispersion/BRKGA"
 
-JULIA="/home/lucas.guilhon/julia-1.9.3/bin/julia --depwarn=no"
+JULIA="/usr/bin/julia --depwarn=no"
 
 #/home/lucas.guilhon/julia-1.9.3/bin/julia --project=${JL_PROJECT} ${EXE} -i ${INSTANCE} ${ELITE_SIZE} ${MUTANTS} ${POPULATION_SIZE} | tail -n 1
 ${JULIA} ${EXE} -i ${INSTANCE} ${ELITE_SIZE} ${MUTANTS} ${POPULATION_SIZE} ${RHO} | tail -n1

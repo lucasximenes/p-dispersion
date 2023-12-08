@@ -70,18 +70,18 @@ trainInstancesDir = "./Instances"
 
 ## Executable called for each configuration that executes the target algorithm
 ## to be tuned. See the templates and examples provided.
-targetRunner = "./target-runner.jl"
+targetRunner = "./target-runner.sh"
 
 ## Executable that will be used to launch the target runner, when targetRunner
 ## cannot be executed directly (.e.g, a Python script in Windows).
-targetRunnerLauncher = "/home/lucas.guilhon/julia-1.9.3/bin/julia"
+# targetRunnerLauncher = "/home/lucas.guilhon/julia-1.9.3/bin/julia"
 
 ## Command-line arguments provided to targetRunnerLauncher. The substrings
 ## \{targetRunner\} and \{targetRunnerArgs\} will be replaced by the value of
 ## the option targetRunner and by the arguments usually passed when calling
 ## targetRunner, respectively. Example: "-m {targetRunner --args
 ## {targetRunnerArgs}"}.
-targetRunnerLauncherArgs = "--depwarn=no --project=/home/lucas.guilhon/IND2602/p-dispersion/BRKGA {targetRunner} {targetRunnerArgs}"
+# targetRunnerLauncherArgs = "--depwarn=no --project=/home/lucas.guilhon/IND2602/p-dispersion/BRKGA {targetRunner} {targetRunnerArgs}"
 
 ## Number of times to retry a call to targetRunner if the call failed.
 # targetRunnerRetries = 0
@@ -104,7 +104,7 @@ targetRunnerLauncherArgs = "--depwarn=no --project=/home/lucas.guilhon/IND2602/p
 
 ## Maximum number of runs (invocations of targetRunner) that will be
 ## performed. It determines the maximum budget of experiments for the tuning.
-maxExperiments = 500
+maxExperiments = 250
 
 ## Maximum total execution time in seconds for the executions of targetRunner.
 ## targetRunner must return two values: cost and time.

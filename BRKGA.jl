@@ -84,7 +84,7 @@ end
 Proceed with the optimization. Create to avoid spread `global` keywords around
 the code.
 """
-function runBRKGA(args)
+function main(args)
     #println(args)
 
     #=
@@ -112,18 +112,18 @@ function runBRKGA(args)
     # rho = parse(Float64, args["<rho>"])
 
     instance_file = args[1]
-    numElite = parse(Float64, args[2])
-    numMutants = parse(Float64, args[3])
-    pop = parse(Int64, args[4])
-    rho = parse(Float64, args[5])
+    numElite = args[2]
+    numMutants = args[3]
+    pop = args[4]
+    rho = args[5]
     
     configuration_file = "/home/lucas.guilhon/IND2602/p-dispersion/config.conf"
     
     seed = 5
     stop_rule = IMPROVEMENT
-    stop_argument = 1000
+    stop_argument = 10000
 
-    maximum_time = 300.0
+    maximum_time = 600.0
 
     perform_evolution = true
 
@@ -296,8 +296,8 @@ function runBRKGA(args)
             #     end
             # end
 
-            #@printf("* %d | %.4f | %.2f \n", iteration, best_cost,
-            #        last_update_time)
+            @printf("* %d | %.4f | %.2f \n", iteration, best_cost,
+                   last_update_time)
         end
 
         iter_without_improvement = iteration - last_update_iteration
@@ -361,8 +361,8 @@ function runBRKGA(args)
                     best_cost = fitness
                     best_chromosome = get_best_chromosome(brkga_data)
 
-                #    @printf("* %d | %.0f | %.2f \n", iteration, best_cost,
-                 #           last_update_time)
+                   @printf("* %d | %.0f | %.2f \n", iteration, best_cost,
+                           last_update_time)
                 end
             end
         end
@@ -396,7 +396,10 @@ function runBRKGA(args)
     
     # println()
     # print(-best_cost)
-    return -best_cost
+    # best = best_cost * -1
+    println(best_cost)
+    # nothing
+    return best_cost, total_elapsed_time
 end
 
 ################################################################################
