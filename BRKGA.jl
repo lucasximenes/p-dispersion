@@ -84,15 +84,46 @@ end
 Proceed with the optimization. Create to avoid spread `global` keywords around
 the code.
 """
-function main(instance, seedParam, numChrom, numElite, numMutants, instParam)
-    configuration_file = "config.conf"
-    instance_file = instance
-    
-    seed = seedParam
-    stop_rule = IMPROVEMENT
-    stop_argument = 1000
+function main(args)
+    #println(args)
 
-    maximum_time = 300.0
+    #=
+
+    params = args
+    i = 1
+    for param in params
+        if param == "-i"
+            break
+        end
+        i += 1
+    end
+
+    instance_file = params[i + 1]
+    numElite = parse(Float64, params[i + 3])
+    numMutants = parse(Float64, params[i + 5])
+    pop = parse(Int64, params[i + 7])
+
+    =#
+    
+    # instance_file = args["<instance_file>"]
+    # pop = parse(Int64, args["<popsize>"])
+    # numElite = parse(Float64, args["<pe>"])
+    # numMutants = parse(Float64, args["<pm>"])
+    # rho = parse(Float64, args["<rho>"])
+
+    instance_file = args[1]
+    numElite = args[2]
+    numMutants = args[3]
+    pop = args[4]
+    rho = args[5]
+    
+    configuration_file = "/home/lucas.guilhon/IND2602/p-dispersion/config.conf"
+    
+    seed = 5
+    stop_rule = IMPROVEMENT
+    stop_argument = 10000
+
+    maximum_time = 600.0
 
     perform_evolution = true
 
@@ -102,25 +133,23 @@ function main(instance, seedParam, numChrom, numElite, numMutants, instParam)
 
     brkga_params, control_params = load_configuration(configuration_file)
 
-    brkga_params.population_size = numChrom
+    brkga_params.population_size = pop
     brkga_params.elite_percentage = numElite
     brkga_params.mutants_percentage = numMutants
     # simulate the classic BRKGA
     brkga_params.num_elite_parents = 1
     brkga_params.total_parents = 2
 
-    rho = 0.6959
-
-    print("""
-    ------------------------------------------------------
-    > Experiment started at $(Dates.now())
-    > Instance: $instance_file
-    > Configuration: $configuration_file
-    > Algorithm Parameters:
-    """)
+    # print("""
+    # ------------------------------------------------------
+    # > Experiment started at $(Dates.now())
+    # > Instance: $instance_file
+    # > Configuration: $configuration_file
+    # > Algorithm Parameters:
+    # """)
 
     if !perform_evolution
-        println(">    - Simple multi-start: on (no evolutionary operators)")
+        #println(">    - Simple multi-start: on (no evolutionary operators)")
     else
         output_string = ""
         for field in fieldnames(BrkgaParams)
@@ -129,14 +158,14 @@ function main(instance, seedParam, numChrom, numElite, numMutants, instParam)
         for field in fieldnames(ExternalControlParams)
             output_string *= ">  - $field $(getfield(control_params, field))\n"
         end
-        print(output_string)
-        println("""
-        > Seed: $seed
-        > Stop rule: $stop_rule
-        > Stop argument: $stop_argument
-        > Maximum time (s): $maximum_time
-        > Number of parallel threads for decoding: $(Threads.nthreads())
-        ------------------------------------------------------""")
+        # print(output_string)
+        # println("""
+        # > Seed: $seed
+        # > Stop rule: $stop_rule
+        # > Stop argument: $stop_argument
+        # > Maximum time (s): $maximum_time
+        # > Number of parallel threads for decoding: $(Threads.nthreads())
+        # ------------------------------------------------------""")
     end
 
     ########################################
@@ -145,11 +174,11 @@ function main(instance, seedParam, numChrom, numElite, numMutants, instParam)
 
     Random.seed!(seed)
 
-    println("\n[$(Dates.Time(Dates.now()))] Reading SCP data...")
+    #println("\n[$(Dates.Time(Dates.now()))] Reading SCP data...")
 
-    instance = instParam
+    instance = readInstance(instance_file)
 
-    println("\n[$(Dates.Time(Dates.now()))] Building BRKGA data...")
+    #println("\n[$(Dates.Time(Dates.now()))] Building BRKGA data...")
 
     brkga_data = build_brkga(instance, decoder, MAXIMIZE, seed,
                             instance.N, brkga_params, perform_evolution)
@@ -159,7 +188,7 @@ function main(instance, seedParam, numChrom, numElite, numMutants, instParam)
 
     initial_chromosome = rand(instance.N)
 
-    println("\n[$(Dates.Time(Dates.now()))] Initializing BRKGA data...")
+    #println("\n[$(Dates.Time(Dates.now()))] Initializing BRKGA data...")
 
     initialPopulation = Vector{Vector{Float64}}()
     for i in 1:10
@@ -175,7 +204,7 @@ function main(instance, seedParam, numChrom, numElite, numMutants, instParam)
     # Warm up the script/code
     ########################################
 
-    println("\n[$(Dates.Time(Dates.now()))] Warming up...")
+    #println("\n[$(Dates.Time(Dates.now()))] Warming up...")
 
     bogus_data = deepcopy(brkga_data)
     evolve!(bogus_data, 2)
@@ -189,8 +218,8 @@ function main(instance, seedParam, numChrom, numElite, numMutants, instParam)
     # Evolving
     ########################################
 
-    println("\n[$(Dates.Time(Dates.now()))] Evolving...")
-    println("* Iteration | Cost | CurrentTime")
+    #println("\n[$(Dates.Time(Dates.now()))] Evolving...")
+    #println("* Iteration | Cost | CurrentTime")
 
     best_cost = -Inf
     best_chromosome = initial_chromosome
@@ -229,43 +258,46 @@ function main(instance, seedParam, numChrom, numElite, numMutants, instParam)
             best_cost = fitness
             best_chromosome = get_best_chromosome(brkga_data)
 
-            # # improve 5 worst solutions
+            # if localSearch && update_offset > 500
 
-            # for i in 1:5
+            #     println("doing local search")
 
-            #     chromosome = get_chromosome(brkga_data, 1, brkga_data.params.population_size - i + 1)
-            #     sol = decoder(chromosome, instance, false, true)
-            #     swap = FastSwap(instance, sol)
-            #     firstImprovement!(swap)
-            
-            #     # println("Fast swap executed")
-                
-            #     new_chromosome = buildChromosome(instance, swap.sol)
-            #     inject_chromosome!(brkga_data, new_chromosome, 1, brkga_data.params.population_size - i + 1, convert(Float64, swap.sol.cost))
-            
-            # end
-            
-            # improve 5 best solutions
-            # for i in 1:1
+            #     # improve 5 worst solutions
 
-            #     chromosome = get_chromosome(brkga_data, 1, i)
-            #     sol = decoder(chromosome, instance, false, true)
-            #     swap = Swap(instance, sol)
-            #     firstImprovement!(swap)
+            #     for i in 1:5
 
-            #     new_chromosome = buildChromosome(instance, swap.sol)
-            #     # println("Improved best solution")
+            #         chromosome = get_chromosome(brkga_data, 1, brkga_data.params.population_size - i + 1)
+            #         sol = decoder(chromosome, instance, false, true)
+            #         swap = FastSwap(instance, sol)
+            #         firstImprovement!(swap)
+                                    
+            #         new_chromosome = buildChromosome(instance, swap.sol)
+            #         inject_chromosome!(brkga_data, new_chromosome, 1, brkga_data.params.population_size - i + 1, convert(Float64, swap.sol.cost))
 
-            #     inject_chromosome!(brkga_data, new_chromosome, 1, i, convert(Float64, swap.sol.cost))
-
-            #     if i == 1
-            #         best_chromosome = new_chromosome
             #     end
+                
+            #     # improve 5 best solutions
+                
+            #     for i in 1:5
 
+            #         chromosome = get_chromosome(brkga_data, 1, i)
+            #         sol = decoder(chromosome, instance, false, true)
+            #         swap = FastSwap(instance, sol)
+            #         firstImprovement!(swap)
+
+            #         new_chromosome = buildChromosome(instance, swap.sol)
+
+            #         inject_chromosome!(brkga_data, new_chromosome, 1, i, convert(Float64, swap.sol.cost))
+
+            #         if i == 1
+            #             best_chromosome = new_chromosome
+            #         end
+
+            #     end
             # end
 
             @printf("* %d | %.4f | %.2f \n", iteration, best_cost,
-                    last_update_time)
+                   last_update_time)
         end
 
         iter_without_improvement = iteration - last_update_iteration
@@ -277,7 +309,7 @@ function main(instance, seedParam, numChrom, numElite, numMutants, instParam)
            iter_without_improvement > 0 &&
            (iter_without_improvement % control_params.exchange_interval == 0)
 
-            println("Performing path relink at $iteration...")
+            #println("Performing path relink at $iteration...")
             num_path_relink_calls += 1
 
             pr_now = time()
@@ -299,24 +331,24 @@ function main(instance, seedParam, numChrom, numElite, numMutants, instParam)
 
             if result == TOO_HOMOGENEOUS
                 num_homogenities += 1
-                println("- Populations are too too homogeneous | " *
-                        "Elapsed time: $(@sprintf("%.2f", pr_time))")
+                #println("- Populations are too too homogeneous | " *
+                #        "Elapsed time: $(@sprintf("%.2f", pr_time))")
 
             elseif result == NO_IMPROVEMENT
-                println("- No improvement found | " *
-                        "Elapsed time: $(@sprintf("%.2f", pr_time))")
+                #println("- No improvement found | " *
+                #        "Elapsed time: $(@sprintf("%.2f", pr_time))")
 
             elseif result == ELITE_IMPROVEMENT
                 num_elite_improvements += 1
-                println("- Improvement on the elite set but " *
-                        "not in the best individual | " *
-                        "Elapsed time: $(@sprintf("%.2f", pr_time))")
+                #println("- Improvement on the elite set but " *
+                #        "not in the best individual | " *
+                #        "Elapsed time: $(@sprintf("%.2f", pr_time))")
 
             elseif result == BEST_IMPROVEMENT
                 num_best_improvements += 1
                 fitness = get_best_fitness(brkga_data)
-                println("- Best individual improvement: $fitness | " *
-                        "Elapsed time: $(@sprintf("%.2f", pr_time))")
+                #println("- Best individual improvement: $fitness | " *
+                #        "Elapsed time: $(@sprintf("%.2f", pr_time))")
                 if fitness > best_cost
                     last_update_time = time() - start_time
                     update_offset = iteration - last_update_iteration
@@ -329,8 +361,8 @@ function main(instance, seedParam, numChrom, numElite, numMutants, instParam)
                     best_cost = fitness
                     best_chromosome = get_best_chromosome(brkga_data)
 
-                    @printf("* %d | %.0f | %.2f \n", iteration, best_cost,
-                            last_update_time)
+                   @printf("* %d | %.0f | %.2f \n", iteration, best_cost,
+                           last_update_time)
                 end
             end
         end
@@ -347,23 +379,26 @@ function main(instance, seedParam, numChrom, numElite, numMutants, instParam)
     total_elapsed_time = time() - start_time
     total_num_iterations = iteration
 
-    println("Cost of the worst chromosome: $(decoder(get_chromosome(brkga_data, 1, brkga_data.params.population_size), instance, false, false))")
-    println("Cost of the best chromosome: $(decoder(get_chromosome(brkga_data, 1, 1), instance, false, false))")
+    # println("Cost of the worst chromosome: $(decoder(get_chromosome(brkga_data, 1, brkga_data.params.population_size), instance, false, false))")
+    # println("Cost of the best chromosome: $(decoder(get_chromosome(brkga_data, 1, 1), instance, false, false))")
 
-    println("[$(Dates.Time(Dates.now()))] End of optimization")
-    print("\nTotal number of iterations: $total_num_iterations")
-    print("\nLast update iteration: $last_update_iteration")
-    @printf("\nTotal optimization time: %.2f", total_elapsed_time)
-    @printf("\nLast update time: %.2f", last_update_time)
-    print("\nLarge number of iterations between improvements: $large_offset")
-
-    @printf("\nTotal path relink time: %.2f", path_relink_time)
-    print("\nTotal path relink calls: $num_path_relink_calls")
-    print("\nNumber of homogenities: $num_homogenities")
-    print("\nImprovements in the elite set: $num_elite_improvements")
-    print("\nBest individual improvements: $num_best_improvements")
-    print("\nBest cost: $best_cost")
-
+    # println("[$(Dates.Time(Dates.now()))] End of optimization")
+    # print("\nTotal number of iterations: $total_num_iterations")
+    # print("\nLast update iteration: $last_update_iteration")
+    # @printf("\nTotal optimization time: %.2f", total_elapsed_time)
+    # @printf("\nLast update time: %.2f", last_update_time)
+    # print("\nLarge number of iterations between improvements: $large_offset")
+    # @printf("\nTotal path relink time: %.2f", path_relink_time)
+    # print("\nTotal path relink calls: $num_path_relink_calls")
+    # print("\nNumber of homogenities: $num_homogenities")
+    # print("\nImprovements in the elite set: $num_elite_improvements")
+    # println("\nBest individual improvements: $num_best_improvements")
+    
+    # println()
+    # print(-best_cost)
+    # best = best_cost * -1
+    println(best_cost)
+    # nothing
     return best_cost, total_elapsed_time
 end
 
@@ -371,35 +406,36 @@ end
 # Parse and validate command-line arguments, and call main function
 ################################################################################
 
-doc = """
-Usage:
-  main_complete.jl -c <config_file> -s <seed> -r <stop_rule> -a <stop_arg> -t <max_time> -i <instance_file> [--no_evolution]
-  main_complete.jl (-h | --help)
+# doc = """
+# Usage:
+#   main_complete.jl -i <instance_file> -e <pe> -m <pm> -p <popsize> -r <rho>[--no_evolution]
+#   main_complete.jl (-h | --help)
 
-Options:
+# Options:
 
-    -c <config_file>    Text file with the BRKGA-MP-IPR parameters.
+#     -c <config_file>    Text file with the BRKGA-MP-IPR parameters.
 
-    -s <seed>           Seed for the random number generator.
+#     -s <seed>           Seed for the random number generator.
 
-    -r <stop_rule>      Stop rule where:
-                        - (G)enerations: number of evolutionary generations.
-                        - (I)terations: maximum number of generations without
-                          improvement in the solutions.
-                        - (T)arget: runs until obtains the target value.
+#     -r <stop_rule>      Stop rule where:
+#                         - (G)enerations: number of evolutionary generations.
+#                         - (I)terations: maximum number of generations without
+#                           improvement in the solutions.
+#                         - (T)arget: runs until obtains the target value.
 
-    -a <stop_arg>       Argument value for '-r'.
+#     -a <stop_arg>       Argument value for '-r'.
 
-    -t <max_time>       Maximum time in seconds.
+#     -t <max_time>       Maximum time in seconds.
 
-    -i <instance_file>  Instance file.
+#     -i <instance_file>  Instance file.
 
-    --no_evolution      If supplied, no evolutionary operators are applied. So,
-                        the algorithm becomes a simple multi-start algorithm.
+#     --no_evolution      If supplied, no evolutionary operators are applied. So,
+#                         the algorithm becomes a simple multi-start algorithm.
 
-    -h --help           Produce help message.
-"""
+#     -h --help           Produce help message.
+# """
 # args = DocOpt.docopt(doc)
-# main(args)
+# cost = main(args)
+
 
 #julia --project=./MH  main_complete.jl -c config.conf -s 10 -r I -a 100 -t 60 -i "Data/instances/scpd1.txt"
