@@ -1,4 +1,4 @@
-struct PDInstance <: AbstractInstance
+struct PDInstance #<: AbstractInstance
     mat::Matrix{Float64}
     N::Int64
     P::Int64

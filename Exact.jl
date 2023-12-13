@@ -11,7 +11,7 @@ function solveExact(instance::PDInstance)::Tuple{Float64, Bool}
     ub = Inf
 
     initTime = time()
-    while lo < hi && time() - initTime < 120
+    while lo < hi && time() - initTime < 600
 
         println("Time elapsed: $(time() - initTime) seconds")
         mid = lo + (hi - lo + 1) ÷ 2
@@ -23,15 +23,23 @@ function solveExact(instance::PDInstance)::Tuple{Float64, Bool}
         else
             println("Upper bound: $(distances[mid][1])")
             ub = distances[mid][1]
+            if abs(ub) < 1e-4
+                lb = ub
+                return lb, true
+            end
             hi = mid - 1
         end
     end
 
-    if time() - initTime > 120
+    if time() - initTime > 600
         println("Time elapsed: $(time() - initTime) seconds")
         println("Lower bound: $lb")
         println("Upper bound: $ub")
-        return lb, false
+        if abs(ub - lb) < 1e-4
+            return lb, true
+        else
+            return lb, false
+        end
     end
 
 
@@ -52,7 +60,7 @@ end
 function setPacking(indices, N, P, final = false)
     m = Model(Gurobi.Optimizer)
     set_silent(m)
-    set_time_limit_sec(m, 120)
+    set_time_limit_sec(m, 600)
     @variable(m, x[1:N], Bin)
     @constraint(m, sum(x) == P)
     @constraint(m, [i = 1:length(indices)], x[indices[i][2]] + x[indices[i][3]] <= 1)

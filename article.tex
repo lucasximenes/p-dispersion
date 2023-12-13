@@ -38,6 +38,11 @@
 %% The amssymb package provides various useful mathematical symbols
 \usepackage{amssymb}
 \usepackage{amsmath}
+\usepackage{lscape}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{algorithmicx}
+\usepackage{hyperref}
 
 %% The amsthm package provides extended theorem environments
 %% \usepackage{amsthm}
@@ -185,15 +190,64 @@ It's important to note that previous research on the p-dispersion problem lacked
 In this study, we propose the utilization of a biased random key genetic algorithm (BRKGA) \citep{Goncalves2011-kp} to address the p-dispersion problem and offer a comparative assessment against existing state-of-the-art methods. Our objective is twofold: to tackle instances that elude other approaches and to establish a benchmark for future methods to evaluate their performance against.
 \section{Solving the p-dispersion problem with a BRKGA}
 \label{sec:brkga}
-The Biased Random Key Genetic Algorithm (BRKGA) is a powerful optimization technique used to solve complex combinatorial problems. It operates based on a chromosome representation comprising vectors of real numbers typically constrained within the range of [0, 1]. These chromosomes encode potential solutions to the problem at hand. The decoding mechanism in a BRKGA is crucial—transforming these continuous representations into feasible and meaningful solutions. In the context of the p-dispersion problem, the BRKGA employs a decoder responsible for selecting the $p$ objects that form a solution. This process involves sorting the chromosome and choosing the $p$ elements corresponding to the indices of the $p$ smallest values in the chromosome.
-
+The Biased Random Key Genetic Algorithm (BRKGA) is a powerful and diverse metaheuristic used to solve complex combinatorial problems. One of it's main benefits is the fact that it simplifies one of the biggest challanges in genetic algorithms, which is how to perform crossover on a population of solutions without creating infeasibilities.
+This simplification is made possible by the use of a decoder, which is responsible for transforming the chromosome, i.e a vector of real numbers in the range of $[0,1]$, into a feasible solution. Now the act of crossing solutions simply involves choosing indices from the chromosomes of the parents and combining them into the chromosome of the child. This process is illustrated in Figure \ref{fig:crossing}.
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=0.8\textwidth]{crossing.png}
+    \caption{Crossover of two parents (solutions $a$ and $b$) into a new child (solution $c$). \href{https://mauricio.resende.info/talks/2012-09-CLAIO2012-brkga-tutorial-both-days.pdf}{Source}}
+    \label{fig:crossing}
+\end{figure}
+This decoder is of course problem dependent, and in the case of the p-dispersion problem, it is responsible for selecting the $p$ objects with which the solution will be composed, and we'll discuss it in more detail in the following section.
 \subsection{Chromosome representation and decoder}
-As mentioned before, the BRKGA represents solutions as chromosomes, which are vectors of real numbers in the range of $[0,1]$. And in order for this representation to be useful, a decoder is required to transform the chromosome into a feasible solution. In the case of the p-dispersion problem, the decoder is responsible for selecting the $p$ objects with which the solution will be composed. In our case, this is done by sorting the chromosome and setting the $p$'s equal to the indices of the $p$ smallest values in the chromosome.
-This process is ilustrated in the pseudocode below: 
+As mentioned before, the BRKGA represents solutions as chromosomes, which are vectors of real numbers in the range of $[0,1]$. And in order for this representation to be useful, a decoder is required to transform the chromosome into a feasible solution. In the case of the p-dispersion problem, the decoder is responsible for selecting the $p$ objects with which the solution will be composed.
+In our case, this is done by sorting the chromosome and setting the $p$'s equal to the indices of the $p$ smallest values in the chromosome.
+This process is ilustrated in the pseudocode below:
+\begin{algorithm}[H]
+    \label{alg:decoder}
+    \begin{algorithmic}[1]
+        \Require $C \in [0, 1]^M$
+        \State $S_i \leftarrow \text{argsort}(C)$
+        \State $P \leftarrow S_i[1:p]$
+        \State \Return $min \{ d(p_i, p_j) \ | \ p_i, p_j \in P \}$
+    \end{algorithmic}
+    \caption{Decoder for the p-dispersion problem}
+\end{algorithm}
+In which $C$ is the chromosome, $S_i$ are the indices of the sorted chromosome, $P$ is the set of the chosen objects, and $d(p_i, p_j)$ is the dissimilarity between objects $p_i$ and $p_j$.
+
 \subsection{Local search}
 Two neighborhoods were explored in this study and both of them were swap neighborhoods. The firt one, called \textit{Fast Swap}, uses a preprocessed $n\times p$ matrix that contains the closest $p$ points to every point in the instance. This matrix is calculated once and used in every iteration of the local search. The way it works is that it finds the pair in the solution that contains the smallest distance, and then it attemps to swap one of the points in the pair by one of it's $p$ closest points. If the swap improves the solution, it is accepted.
 The second neighborhood, called \textit{Swap}, is a more traditional swap neighborhood, where we evaluate the swap of every point $p$ in the solution with every other point $n$ that is not in the solution. If the swap improves the solution, it is accepted.
 The pseudocode for both neighborhoods is presented below:
+\begin{algorithm}[H]
+    \label{alg:swap}
+    \begin{algorithmic}[1]
+        \Require $P$ \text{the set of chosen points}
+        \For{$i \in 1..N$}
+            \For{$j \in 1..|P|$}
+                \State $\text{eval}(P[j], i)$ \Comment{Evaluate the swap of $P[j]$ with object $i$}
+            \EndFor
+        \EndFor
+    \end{algorithmic}
+    \caption{Swap neighborhood}
+\end{algorithm}
+
+\begin{algorithm}[H]
+    \label{alg:fastswap}
+    \begin{algorithmic}[1]
+        \Require $P,\ M$ \text{the set of chosen points and the matrix of closest points}
+        \State $(i, j) \leftarrow \text{argmin}_{i,j \in P} d(i, j)$ \Comment{Find the pair of points with the smallest distance}
+        \State $c_1 \leftarrow \text{eval}(P[i], M)$ \Comment{Evaluate the swap of $P[i]$ with it's $p$ closest points}
+        \State $c_2 \leftarrow \text{eval}(P[j], M)$ \Comment{Evaluate the swap of $P[j]$ with it's $p$ closest points}
+        \If{$c_1 < c_2$}
+            \State $P[i] \leftarrow \text{argmin}_{k \in M[i]} d(k, P[j])$ \Comment{Swap $P[i]$ with the closest point to $P[j]$}
+        \Else
+            \State $P[j] \leftarrow \text{argmin}_{k \in M[j]} d(k, P[i])$ \Comment{Swap $P[j]$ with the closest point to $P[i]$}
+        \EndIf
+    \end{algorithmic}
+    \caption{Fast Swap neighborhood}
+\end{algorithm}
+The evaluate function is responsible for calculating the cost of the solution after the swap, and it does so by checking the smallest distance between every pair of points, amounting to a complexity of $O(p^2)$.
 \subsection{Evolutionary process}
 The evolutionary process in our BRKGA implementation involves multiple stages. Initially, an initial population of solutions, represented as chromosomes, is generated randomly. These solutions evolve iteratively through a series of genetic operations like crossover and mutation.
 
@@ -207,7 +261,63 @@ The computational experiments were conducted on a computer with an AMD Ryzen 7 6
 The instances used in this study were sourced from MDPLIB 2.0 \cite{marti2021mdplib}, a comprehensive library of instances designed for maximum diversity problems, containing a total of 770 instances. For the purposes of this paper, we focused exclusively on instances addressing the non-constrained version of the maximum diversity problem. These instances are categorized into three sets: Euclidean, Real, and Integer instances.
 
 The Euclidean dataset comprises 160 matrices, with values calculated as the Euclidean distances between randomly generated points, each having coordinates within the range of 0 to 10. Meanwhile, the Real and Integer sets consist of 140 and 170 instances, respectively. These sets feature matrices with numbers generated from uniform distributions of real and integer numbers. Each instance subset is further divided into subcategories, with more details available in the original paper \cite{marti2021mdplib}.
-\subsection{Instance optimality}
+\subsection{Results}
+
+\begin{landscape}
+\begin{table}[!ht]
+    \centering
+    \begin{tabular}{|l|l|l|l|l|l|l|l|}
+    \hline
+        ~ & Exact & ~ & ~ & BRKGA & ~ & Diff & ~ \\ \hline
+        Instance & Result & Time (s) & Optimal & Result & Time (s) & Result & Time (s) \\ \hline
+        GKD-c\_1\_n500\_m50.txt & 10.62826 & 175.0819419 & FALSE & 10.0025 & 120.0700002 & 5.89\% & 31.42\% \\ \hline
+        GKD-c\_2\_n500\_m50.txt & 10.69907 & 204.1420088 & FALSE & 9.94636 & 123.2719998 & 7.04\% & 39.61\% \\ \hline
+        GKD\_d\_1\_n1000\_coor.txt & 9.58187 & 59.3382452 & TRUE & 6.90829 & 154.8179998 & 27.90\% & -160.91\% \\ \hline
+        GKD\_d\_1\_n100\_coor.txt & 34.11047 & 0.131707 & TRUE & 33.00549 & 3.313999891 & 3.24\% & -2416.19\% \\ \hline
+        GKD\_d\_1\_n2000\_coor.txt & 6.50899 & 176.5808659 & FALSE & 4.55931 & 655.9489999 & 29.95\% & -271.47\% \\ \hline
+        GKD\_d\_1\_n250\_coor.txt & 20.34579 & 0.8918694 & TRUE & 17.36325 & 13.16700006 & 14.66\% & -1376.34\% \\ \hline
+        GKD\_d\_1\_n25\_coor.txt & 80.28497 & 0.0337449 & TRUE & 80.28497 & 0.9089999199 & 0.00\% & -2593.74\% \\ \hline
+        GKD\_d\_1\_n500\_coor.txt & 13.71912 & 6.4232128 & TRUE & 11.82253 & 93.81500006 & 13.82\% & -1360.56\% \\ \hline
+        GKD\_d\_1\_n50\_coor.txt & 54.21418 & 0.0661512 & TRUE & 54.21418 & 1.605999947 & 0.00\% & -2327.77\% \\ \hline
+        GKD\_d\_2\_n1000\_coor.txt & 9.50384 & 55.7057781 & TRUE & 6.70564 & 126.836 & 29.44\% & -127.69\% \\ \hline
+        GKD\_d\_2\_n100\_coor.txt & 34.81992 & 0.1381636 & TRUE & 30.27803 & 3.405999899 & 13.04\% & -2365.19\% \\ \hline
+        GKD\_d\_2\_n2000\_coor.txt & 6.5635 & 200.8414534 & FALSE & 4.49922 & 1080.0041 & 31.45\% & -437.74\% \\ \hline
+        GKD\_d\_2\_n250\_coor.txt & 20.54752 & 1.1130759 & TRUE & 17.27553 & 14.61300015 & 15.92\% & -1212.85\% \\ \hline
+        GKD\_d\_2\_n25\_coor.txt & 78.42063 & 0.066236 & TRUE & 78.42063 & 0.9419999123 & 0.00\% & -1322.19\% \\ \hline
+        GKD\_d\_2\_n500\_coor.txt & 13.93588 & 6.3882725 & TRUE & 12.52089 & 120.023 & 10.15\% & -1778.80\% \\ \hline
+        GKD\_d\_2\_n50\_coor.txt & 54.20737 & 0.0985436 & TRUE & 54.20737 & 1.993999958 & 0.00\% & -1923.47\% \\ \hline
+    \end{tabular}
+\end{table}
+\end{landscape}
+\begin{landscape}
+\begin{table}[!ht]
+    \centering
+    \begin{tabular}{|l|l|l|l|l|l|l|l|}
+    \hline
+    ~ & Exact & ~ & ~ & BRKGA & ~ & Diff & ~ \\ \hline
+        MDG-a\_1\_100\_m10.txt & 4.68 & 5.3068942 & TRUE & 3.86 & 5.032000065 & 17.52\% & 5.18\% \\ \hline
+        MDG-a\_1\_n500\_m50.txt & 0 & 160.6789812 & FALSE & 0.5 & 124.4679999 & \#DIV/0! & 22.54\% \\ \hline
+        MDG-a\_2\_100\_m10.txt & 4.74 & 2.9565136 & TRUE & 3.52 & 3.467000008 & 25.74\% & -17.27\% \\ \hline
+        MDG-a\_2\_n500\_m50.txt & 0 & 163.7505464 & FALSE & 0.57 & 90.62800002 & \#DIV/0! & 44.65\% \\ \hline
+        MDG-b\_1\_100\_m10.txt & 460.11 & 3.4369108 & TRUE & 417.98 & 3.493999958 & 9.16\% & -1.66\% \\ \hline
+        MDG-b\_1\_n500\_m50.txt & 0 & 151.1147347 & FALSE & 72.83 & 120.096 & \#DIV/0! & 20.53\% \\ \hline
+        MDG-c\_1\_n3000\_m300.txt & 0 & 131.233303 & FALSE & 5 & 4800 & \#DIV/0! & -3557.61\% \\ \hline
+        MDG-c\_2\_n3000\_m300.txt & 0 & 131.695023 & FALSE & 5 & 4800 & \#DIV/0! & -3544.78\% \\ \hline
+        SOM-a\_11\_n50\_m5.txt & 7 & 0.174539 & TRUE & 6 & 1.858999968 & 14.29\% & -965.09\% \\ \hline
+        SOM-a\_1\_n25\_m2.txt & 9 & 0.031464 & TRUE & 9 & 1.003000021 & 0.00\% & -3087.77\% \\ \hline
+        SOM-a\_21\_n100\_m10.txt & 5 & 3.5217837 & TRUE & 2 & 3.919999838 & 60.00\% & -11.31\% \\ \hline
+        SOM-a\_31\_n125\_m12.txt & 4 & 7.793578 & TRUE & 2 & 5.082999945 & 50.00\% & 34.78\% \\ \hline
+        SOM-a\_41\_n150\_m15.txt & 3 & 17.9386929 & TRUE & 1 & 6.620999813 & 66.67\% & 63.09\% \\ \hline
+        SOM-b\_13\_n400\_m40.txt & 0 & 149.5033364 & FALSE & 0 & 36.16199994 & \#DIV/0! & 75.81\% \\ \hline
+        SOM-b\_17\_n500\_m50.txt & 0 & 175.8397833 & FALSE & 0 & 59.06400013 & \#DIV/0! & 66.41\% \\ \hline
+        SOM-b\_1\_n100\_m10.txt & 4 & 3.5477426 & TRUE & 2 & 3.808000088 & 50.00\% & -7.34\% \\ \hline
+        SOM-b\_7\_n200\_m60.txt & 0 & 122.7233354 & FALSE & 0 & 56.852 & \#DIV/0! & 53.67\% \\ \hline
+        SOM-b\_9\_n300\_m30.txt & 0 & 130.224927 & FALSE & 0 & 20.5619998 & \#DIV/0! & 84.21\% \\ \hline
+    \end{tabular}
+\end{table}
+\end{landscape}
+
+
 
 %% The Appendices part is started with the command \appendix;
 %% appendix sections are then done as normal sections

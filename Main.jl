@@ -26,4 +26,4 @@ function executeTests()
     CSV.write("resultsExact.csv", df)
 end
 
-main()
+executeTests()
